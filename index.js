@@ -1,26 +1,36 @@
 var fs = require("fs");
 var path = require("path");
 
-function scanRoute (app) {
-	var routesDir = path.join(path.dirname(path.dirname(__dirname)), "/routes");
-	var routesFiles = fs.readdirSync(routesDir);
+function scanRoute (app, options) {
+	if (!options) options = {};
+	options = {verbose: options.verbose || false, errorHandler: options.errorHandler || errorHandler, src: options.src || []};
 
-	routesFiles.forEach(function (filename) {
-		//match .js files in directory excluding index.js and files starting with an underscore
-		if (filename.match(/^((?!(index|_)).)*\.js$/)) {
+	options.src.push("/routes");
+	options.src.forEach(function (source) {
+		var routesDir = path.join(path.dirname(path.dirname(__dirname)), source);
+		var files = fs.readdirSync(routesDir);
 
-			//get readable name
-			var routeName = filename.substring(0, filename.length - 3);
-			var routes = require(path.join(routesDir, filename));
+		files.forEach(function (filename) {
+			//match .js files in directory excluding index.js and files starting with an underscore
+			if (filename.match(/^((?!(index|_)).)*\.js$/)) {
 
-			for (routeName in routes) {
-				var route = routes[routeName];
+				//get readable name
+				var routeName = filename.substring(0, filename.length - 3);
+				var routes = require(path.join(routesDir, filename));
 
-				//add some validation
-				app[route.method](route.path, route.callback, errorHandler);
+				if (options.verbose) console.log("#### " + routeName.toUpperCase() + " ####")
+
+				for (methodName in routes) {
+					var route = routes[methodName];
+
+					if (options.verbose) console.log(route.method.toUpperCase() + ":" + route.path + " -> " + methodName)
+
+					//add some validation
+					app[route.method](route.path, route.callback, options.errorHandler);
+				}
 			}
-		}
 
+		})
 	})
 }
 

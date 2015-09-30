@@ -16,6 +16,24 @@ var scanRoute = require('scan-route');
 scanRoute(app);
 ````
 
+### Options
+
+You can pass an options object as a second argument:
+`scanRoute(app, options)`
+
+With the following parameters
+
+````
+var options = {
+	verbose: false,
+	src: [], //An array of paths to additional routes folder
+	errorHandler: function (err) {
+		//pass a custom errorHandler here
+	}
+};
+````
+
+
 ### Sample of a route format, `./routes/sample.js`
 
 ````
